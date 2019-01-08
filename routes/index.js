@@ -32,11 +32,9 @@ router.get('/allBalance', async function (req, res, next) {
   bank.options.address = req.query.address;
   let ethBalance = await web3.eth.getBalance(req.query.account)
   let bankBalance = await bank.methods.getBankBalance().call({ from: req.query.account })
-  let coinBalance = await bank.methods.getCoinBalance().call({ from: req.query.account })
   res.send({
     ethBalance: ethBalance,
-    bankBalance: bankBalance,
-    coinBalance: coinBalance,
+    bankBalance: bankBalance
   })
 });
 
@@ -147,121 +145,36 @@ router.post('/kill', function (req, res, next) {
 router.get('/owner', async function (req, res, next) {
   // TODO
   // ...
-  let bank = new web3.eth.Contract(contract.abi);
-  bank.options.address = req.query.address;
-  bank.methods.getOwner().call({
-    from: req.query.account
-  })
-  .then((result) => res.send(result))
-  .catch((err) => res.send(err.toString()));
 });
 
 //mint Coin
 router.post('/mintCoin', function (req, res, next) {
   // TODO
   // ...
-  let bank = new web3.eth.Contract(contract.abi);
-  bank.options.address = req.body.address;
-  bank.methods.mint(req.body.value).send({
-    from: req.body.account,
-    gas: 3400000
-  })
-    .on('receipt', function (receipt) {
-      res.send(receipt);
-    })
-    .on('error', function (error) {
-      res.send(error.toString());
-    })
 });
 
 //buy Coin
 router.post('/buyCoin', function (req, res, next) {
   // TODO
   // ...
-  let bank = new web3.eth.Contract(contract.abi);
-  bank.options.address = req.body.address;
-  bank.methods.buy(req.body.value).send({
-    from: req.body.account,
-    gas: 3400000
-  })
-    .on('receipt', function (receipt) {
-      res.send(receipt);
-    })
-    .on('error', function (error) {
-      res.send(error.toString());
-    })
 });
 
 //transfer Coin
 router.post('/transferCoin', function (req, res, next) {
   // TODO
   // ...
-  let bank = new web3.eth.Contract(contract.abi);
-  bank.options.address = req.body.address;
-  bank.methods.transferCoin(req.body.to, req.body.value).send({
-    from: req.body.account,
-    gas: 3400000
-  })
-    .on('receipt', function (receipt) {
-      res.send(receipt);
-    })
-    .on('error', function (error) {
-      res.send(error.toString());
-    })
 });
 
 //transfer Owner
 router.post('/transferOwner', function (req, res, next) {
   // TODO
   // ...
-  let bank = new web3.eth.Contract(contract.abi);
-  bank.options.address = req.body.address;
-  bank.methods.transferOwner(req.body.newOwner).send({
-    from: req.body.account,
-    gas: 3400000
-  })
-    .on("receipt", function(receipt) {
-      res.send(receipt);
-    })
-    .on("error", function(error) {
-      res.send(error.toString());
-    })
 });
 
 //transfer ether to other address
 router.post('/transferTo', async function (req, res, next) {
   // TODO
   // ...
-  let bank = new web3.eth.Contract(contract.abi);
-  bank.options.address = req.body.address;
-  let fromAddress = req.body.account;
-  let toAddress = req.body.to;
-  var transferAmount = await web3.utils.toWei(`${req.body.value}`, 'ether');
-
-  let totalGas=0;
-    await bank.methods.transfer.estimateGas((toAddress, transferAmount),{
-        from: fromAddress
-    })
-        .then((gasAmount) => {
-            totalGas = gasAmount;
-        })
-        .catch((err) => {
-            res.send(err.toString())
-        });
-    console.log(`totalGas:${totalGas}`);
-    
-    var realAmount = await totalGas * web3.eth.gasPrice;
-    var realAmount = await transferAmount - web3.utils.fromWei(realAmount, 'ether');
-    bank.methods.transfer(toAddress, realAmount).send({
-        from: fromAddress,
-        gas: 340000
-    })
-        .then((result) => {
-            res.send(result)
-        })
-        .catch((err) => {
-            res.send(err.toString())
-        });
 });
 
 module.exports = router;

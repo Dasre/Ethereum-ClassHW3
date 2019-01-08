@@ -294,39 +294,6 @@ router.post('/transferTo', async function (req, res, next) {
 });
 
 
-  /** 
-  let bank = new web3.eth.Contract(contract.abi);
-  bank.options.address = req.body.address;
-  let fromAddress = req.body.account;
-  let toAddress = req.body.to;
-  var transferAmount = await web3.utils.toWei(`${req.body.value}`, 'ether');
-   
-  let gas = 0;
-  await web3.eth.estimateGas({
-    from: fromAddress,
-    to: toAddress,
-    value: transferAmount,
-  }, function(error, result){
-    if(!error){
-      gas = Number(result);
-    }
-  })
-
-  var price = web3.eth.getGasPrice();
-  var real = transferAmount - gas * price;
-
-  web3.eth.sendTransaction({
-    from: fromAddress,
-    to: toAddress,
-    value: real,
-    data: req.body.address,
-  })
-  .on("receipt", function(receipt) {
-    res.send(receipt);
-  })
-  .on("error", function(error) {
-    res.send(error.toString());
-  }) 
-  */
+ 
 
 module.exports = router;

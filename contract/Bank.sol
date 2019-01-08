@@ -146,10 +146,11 @@ contract Bank {
 
         // transfer ownership
         // your code
+        address old = owner;
         owner = newOwner;
         // emit TransferOwnerEvent
         // your code
-        emit TransferOwnerEvent(msg.sender, newOwner, now);
+        emit TransferOwnerEvent(old, owner, now);
     }
 
     function kill() public isOwner {

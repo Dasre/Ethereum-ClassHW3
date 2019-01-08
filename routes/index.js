@@ -32,9 +32,11 @@ router.get('/allBalance', async function (req, res, next) {
   bank.options.address = req.query.address;
   let ethBalance = await web3.eth.getBalance(req.query.account)
   let bankBalance = await bank.methods.getBankBalance().call({ from: req.query.account })
+  let coinBalance = await bank.methods.getCoinBalance().call({ from: req.query.account })
   res.send({
     ethBalance: ethBalance,
-    bankBalance: bankBalance
+    bankBalance: bankBalance,
+    coinBalance: coinBalance,
   })
 });
 
@@ -145,36 +147,186 @@ router.post('/kill', function (req, res, next) {
 router.get('/owner', async function (req, res, next) {
   // TODO
   // ...
+  let bank = new web3.eth.Contract(contract.abi);
+  bank.options.address = req.query.address;
+  bank.methods.getOwner().call({
+    from: req.query.account
+  })
+  .then((result) => res.send(result))
+  .catch((err) => res.send(err.toString()));
 });
 
 //mint Coin
 router.post('/mintCoin', function (req, res, next) {
   // TODO
   // ...
+  let bank = new web3.eth.Contract(contract.abi);
+  bank.options.address = req.body.address;
+  bank.methods.mint(req.body.value).send({
+    from: req.body.account,
+    gas: 3400000
+  })
+    .on('receipt', function (receipt) {
+      res.send(receipt);
+    })
+    .on('error', function (error) {
+      res.send(error.toString());
+    })
 });
 
 //buy Coin
 router.post('/buyCoin', function (req, res, next) {
   // TODO
   // ...
+  let bank = new web3.eth.Contract(contract.abi);
+  bank.options.address = req.body.address;
+  bank.methods.buy(req.body.value).send({
+    from: req.body.account,
+    gas: 3400000
+  })
+    .on('receipt', function (receipt) {
+      res.send(receipt);
+    })
+    .on('error', function (error) {
+      res.send(error.toString());
+    })
 });
 
 //transfer Coin
 router.post('/transferCoin', function (req, res, next) {
   // TODO
   // ...
+  let bank = new web3.eth.Contract(contract.abi);
+  bank.options.address = req.body.address;
+  bank.methods.transferCoin(req.body.to, req.body.value).send({
+    from: req.body.account,
+    gas: 3400000
+  })
+    .on('receipt', function (receipt) {
+      res.send(receipt);
+    })
+    .on('error', function (error) {
+      res.send(error.toString());
+    })
 });
 
 //transfer Owner
 router.post('/transferOwner', function (req, res, next) {
   // TODO
   // ...
+  let bank = new web3.eth.Contract(contract.abi);
+  bank.options.address = req.body.address;
+  bank.methods.transferOwner(req.body.newOwner).send({
+    from: req.body.account,
+    gas: 3400000
+  })
+    .on("receipt", function(receipt) {
+      res.send(receipt);
+    })
+    .on("error", function(error) {
+      res.send(error.toString());
+    })
 });
 
 //transfer ether to other address
 router.post('/transferTo', async function (req, res, next) {
   // TODO
   // ...
+  /*
+  let result = web3.eth.estimateGas({
+    from: req.body.account,
+    to: req.body.to,
+    value: req.body.value,
+  });
+  */
+  var gas = await web3.eth.estimateGas({
+    from: req.body.account,
+    to: req.body.to,
+    value: req.body.value,
+  })
+  console.log(gas.toString());
+
+
+  var transferAmount = await web3.utils.toWei(req.body.value, 'ether');
+  console.log(typeof(transferAmount));
+  console.log(transferAmount);
+  
+  web3.eth.getGasPrice().then(gasPrice => {
+    console.log('gasPrice = ' + gasPrice);
+    
+    var x = gas * gasPrice;
+    console.log(x);
+    var real = transferAmount - x;
+    console.log(real)
+    
+    web3.eth.sendTransaction({
+      from: req.body.account,
+      to: req.body.to,
+      value: real,
+    })
+    .on("receipt", function(receipt) {
+      res.send(receipt);
+    })
+    .on("error", function(error) {
+      res.send(error.toString());
+    })
+
+  });
+  
+
+
+  /*
+  var total = web3.utils.toWei(gas * gasPrice,'ether');
+  var real = web3.utils.toBN(transferAmount - total);
+   //var real = req.body.value - result;
+  web3.eth.sendTransaction({
+    from: req.body.account,
+    to: req.body.to,
+    value: real,
+  })
+  .on("receipt", function(receipt) {
+    res.send(receipt);
+  })
+  .on("error", function(error) {
+    res.send(error.toString());
+  })
+  */
 });
+
+
+  /** 
+  let bank = new web3.eth.Contract(contract.abi);
+  bank.options.address = req.body.address;
+  let fromAddress = req.body.account;
+  let toAddress = req.body.to;
+  var transferAmount = await web3.utils.toWei(`${req.body.value}`, 'ether');
+   
+  let gas = 0;
+  await web3.eth.estimateGas({
+    from: fromAddress,
+    to: toAddress,
+    value: transferAmount,
+  }, function(error, result){
+    if(!error){
+      gas = Number(result);
+    }
+  })
+
+  var price = web3.eth.getGasPrice();
+  var real = transferAmount - gas * price;
+
+  web3.eth.sendTransaction({
+    from: fromAddress,
+    to: toAddress,
+    value: real,
+    data: req.body.address,
+  })
+  .on("receipt", function(receipt) {
+    res.send(receipt);
+  })
+  .on("error", function(error) {
+    res.send(error.toString());
+  }) 
+  */
 
 module.exports = router;

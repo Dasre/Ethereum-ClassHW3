@@ -25,6 +25,26 @@ let transferEtherTo = $('#transferEtherTo');
 let transferEtherValue = $('#transferEtherValue');
 let transferEtherButton = $('#transferEtherButton');
 
+let mintCoin = $('#mintCoin');
+let mintCoinButton = $('#mintCoinButton');
+
+let buyCoin = $('#buyCoin');
+let buyCoinButton = $('#buyCoinButton');
+
+let transferCoinTo = $('#transferCoinTo');
+let transferCoinValue = $('#transferCoinValue');
+let transferCoinButton = $('#transferCoinButton');
+
+let getOwner = $('#getOwner');
+let getOwnerButton = $('#getOwnerButton');
+
+let transferOwner = $('#transferOwner');
+let transferOwnerButton = $('#transferOwnerButton');
+
+let transferTo = $('#transferTo');
+let transferValue = $('#transferValue');
+let transferButton = $('#transferButton');
+
 // TODO
 // ...
 
@@ -113,6 +133,7 @@ update.on('click', function () {
 
 			$('#ethBalance').text('以太帳戶餘額 (wei): ' + result.ethBalance)
 			$('#bankBalance').text('銀行ETH餘額 (wei): ' + result.bankBalance)
+			$('#nccucoinBalance').text('NCCU COIN餘額: ' + result.coinBalance)
 		})
 	}
 	else {
@@ -121,6 +142,7 @@ update.on('click', function () {
 		}, function (result) {
 			$('#ethBalance').text('以太帳戶餘額 (wei): ' + result.ethBalance)
 			$('#bankBalance').text('銀行ETH餘額 (wei): ')
+			$('#nccucoinBalance').text('NCCU COIN餘額: ')
 		})
 	}
 })
@@ -285,6 +307,215 @@ transferEtherButton.on('click', async function () {
 
 // TODO
 // ...
+
+// 鑄Coin
+mintCoinButton.on('click', async function() {
+
+	if (bankAddress == "") {
+		return;
+	}
+
+	// 解鎖
+	let unlock = await unlockAccount();
+	if (!unlock) {
+		return;
+	}
+
+	// 更新介面
+	waitTransactionStatus()
+
+	//鑄Coin
+	$.post('/mintCoin', {
+		address: bankAddress,
+		account: nowAccount,
+		value: parseInt(mintCoin.val(), 10),
+	}, function (result) {
+		if (result.events !== undefined) {
+			log(result.events.MintEvent.returnValues, '鑄Coin成功')
+
+			// 觸發更新帳戶資料
+			update.trigger('click')
+
+			// 更新介面 
+			doneTransactionStatus()
+		}
+		else {
+			log(result)
+			// 更新介面 
+			doneTransactionStatus()
+		}
+	})
+})
+
+// 購買Coin
+buyCoinButton.on('click', async function(){
+	
+	if (bankAddress == "") {
+		return;
+	}
+
+	// 解鎖
+	let unlock = await unlockAccount();
+	if (!unlock) {
+		return;
+	}
+
+	// 更新介面
+	waitTransactionStatus()
+
+	//購買Coin
+	$.post('/buyCoin', {
+		address: bankAddress,
+		account: nowAccount,
+		value: parseInt(buyCoin.val(), 10),
+	}, function (result) {
+		if (result.events !== undefined) {
+			log(result.events.BuyCoinEvent.returnValues, '購買Coin成功')
+
+			// 觸發更新帳戶資料
+			update.trigger('click')
+
+			// 更新介面 
+			doneTransactionStatus()
+		}
+		else {
+			log(result)
+			// 更新介面 
+			doneTransactionStatus()
+		}
+	})
+})
+
+// 轉移Coin
+transferCoinButton.on('click', async function(){
+	
+	if (bankAddress == "") {
+		return;
+	}
+
+	// 解鎖
+	let unlock = await unlockAccount();
+	if (!unlock) {
+		return;
+	}
+
+	// 更新介面
+	waitTransactionStatus()
+	// 轉帳
+	$.post('/transferCoin', {
+		address: bankAddress,
+		account: nowAccount,
+		to: transferCoinTo.val(),
+		value: parseInt(transferCoinValue.val(), 10)
+	}, function (result) {
+		if (result.events !== undefined) {
+			log(result.events.TransferCoinEvent.returnValues, '轉移Coin成功')
+
+			// 觸發更新帳戶資料
+			update.trigger('click')
+
+			// 更新介面 
+			doneTransactionStatus()
+		}
+		else {
+			log(result)
+			// 更新介面 
+			doneTransactionStatus()
+		}
+	})
+})
+
+// 轉移 Owner
+transferOwnerButton.on('click', async function(){
+	
+	if (bankAddress == "") {
+		return;
+	}
+
+	// 解鎖
+	let unlock = await unlockAccount();
+	if (!unlock) {
+		return;
+	}
+
+	// 更新介面
+	waitTransactionStatus()
+	// 轉帳
+	$.post('/transferOwner', {
+        address: bankAddress,
+        account: nowAccount,
+        newOwner: transferOwner.val(),
+    }, function (result) {
+        if (result.events !== undefined) {
+            log(result.events.TransferOwnerEvent.returnValues, 'TransferOwner')
+
+            // 觸發更新帳戶資料
+            update.trigger('click');
+
+            // 更新介面
+            doneTransactionStatus()
+        }
+        else {
+            log(result);
+            // 更新介面
+            doneTransactionStatus()
+        }
+    })
+})
+
+// 檢查 owner
+getOwnerButton.on('click', function(){
+	if (bankAddress == "") {
+		return;
+	}
+	
+	$.get('/owner', {
+		address: bankAddress,
+		account: nowAccount,
+	}, function (result){
+		$('#getOwner').text('Owner帳戶: '+ result);
+	})
+	
+})
+
+// 轉帳 ETH（進階功能）
+transferButton.on('click', async function() {
+	if (bankAddress == "") {
+		return;
+	}
+
+	// 解鎖
+	let unlock = await unlockAccount();
+	if (!unlock) {
+		return;
+	}
+
+	// 更新介面
+	waitTransactionStatus()
+	// 轉帳
+	$.post('/transferTo', {
+		address: bankAddress,
+		account: nowAccount,
+		to: transferTo.val(),
+		value: parseInt(transferValue.val(), 10)
+	}, function (result) {
+		if (result.events !== undefined) {
+			log(result.events.TransferEvent.returnValues, '轉帳 ETH（進階功能）成功')
+
+			// 觸發更新帳戶資料
+			update.trigger('click')
+
+			// 更新介面 
+			doneTransactionStatus()
+		}
+		else {
+			log(result)
+			// 更新介面 
+			doneTransactionStatus()
+		}
+	})
+})
+
 
 // 載入bank合約
 function loadBank(address) {
